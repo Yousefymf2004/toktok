@@ -1,16 +1,14 @@
+```html
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مشوارك - دليل كباتن التوك توك والتوصيل</title>
-    <!-- تحميل خط Cairo العربي -->
+    <title>مشوارك - كابتن التوصيل</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- تحميل مكتبة Tailwind CSS للتصميم -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- تحميل أيقونات FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         tailwind.config = {
@@ -28,14 +26,6 @@
             font-family: 'Cairo', sans-serif;
             background-color: #f8fafc;
             -webkit-tap-highlight-color: transparent;
-        }
-        /* إخفاء شريط التمرير الأفقي للفلاتر */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
         }
         @keyframes pulse-dot {
             0%, 100% { transform: scale(1); opacity: 1; }
@@ -57,127 +47,10 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-black tracking-tight leading-none">مشوارك</h1>
-                    <p class="text-xs font-bold text-slate-900/80 mt-1">كلم الكابتن مباشرة بدون وسيط</p>
+                    <p class="text-xs font-bold text-slate-900/80 mt-1">تواصل مباشر مع الكابتن</p>
                 </div>
             </div>
             
-            <!-- زر تسجيل كابتن جديد -->
-            <button onclick="openModal('registerModal')" class="bg-slate-950 hover:bg-slate-800 active:scale-95 transition text-amber-400 text-xs sm:text-sm font-bold px-3.5 py-2.5 rounded-xl shadow flex items-center gap-1.5">
-                <i class="fa-solid fa-plus"></i>
-                <span>سجّل ككابتن</span>
-            </button>
-        </div>
-    </header>
-
-    <!-- المحتوى الرئيسي -->
-    <main class="flex-1 max-w-2xl w-full mx-auto px-4 pt-4 pb-24">
-        
-        <!-- مربع البحث والفلترة -->
-        <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 mb-4">
-            <div class="relative mb-3">
-                <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                <input 
-                    type="text" 
-                    id="searchInput" 
-                    oninput="filterDrivers()"
-                    placeholder="ابحث باسم الكابتن أو البلد (مثلاً: المناصافور، ديرب نجم...)" 
-                    class="w-full bg-slate-100/80 border border-slate-200 focus:border-amber-500 focus:bg-white focus:outline-none rounded-xl py-2.5 pr-10 pl-4 text-sm font-semibold transition"
-                >
-            </div>
-
-            <!-- أزرار المناطق وزر المتاحين فقط -->
-            <div class="flex items-center justify-between gap-2">
-                <div id="areaFilters" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 flex-1">
-                    <!-- يتم توليد أزرار البلاد تلقائياً -->
-                </div>
-
-                <button 
-                    id="onlineOnlyBtn" 
-                    onclick="toggleOnlineOnly()"
-                    class="shrink-0 text-xs font-bold px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition flex items-center gap-1.5"
-                >
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <span>المتاحين فقط</span>
-                </button>
-            </div>
-        </section>
-
-        <!-- شريط العدد -->
-        <div class="flex items-center justify-between px-1 mb-3 text-xs font-bold text-slate-500">
-            <span id="driversCountText">جاري تحميل الكباتن...</span>
-            <span class="text-emerald-600 flex items-center gap-1">
-                <i class="fa-solid fa-bolt"></i> اتصال أو واتساب بضغطة واحدة
-            </span>
-        </div>
-
-        <!-- قائمة بطاقات الكباتن -->
-        <div id="driversList" class="space-y-3"></div>
-
-        <!-- رسالة في حالة عدم وجود نتائج -->
-        <div id="emptyState" class="hidden text-center py-12 bg-white rounded-2xl border border-slate-200/80 mt-2">
-            <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
-                <i class="fa-solid fa-user-slash"></i>
-            </div>
-            <h3 class="font-extrabold text-slate-800 text-base">لا يوجد كباتن مسجلين حالياً</h3>
-            <p class="text-xs text-slate-500 mt-1 mb-4">كن أول كابتن يسجل بياناته أو امسح الفلاتر</p>
-            <div class="flex items-center justify-center gap-2">
-                <button onclick="openModal('registerModal')" class="bg-slate-900 text-amber-400 font-bold text-xs px-4 py-2 rounded-xl shadow-sm">
-                    سجّل ككابتن الآن
-                </button>
-                <button onclick="resetFilters()" class="bg-amber-500 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl shadow-sm">
-                    عرض الكل
-                </button>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- نافذة إضافة كابتن جديد -->
-    <div id="registerModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 hidden items-end sm:items-center justify-center p-0 sm:p-4">
-        <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl transform transition-all max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-                <div class="flex items-center gap-2">
-                    <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
-                        <i class="fa-solid fa-id-card"></i>
-                    </span>
-                    <h2 class="font-black text-lg text-slate-900">أضف بياناتك ككابتن</h2>
-                </div>
-                <button onclick="closeModal('registerModal')" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <form id="driverForm" onsubmit="handleAddDriver(event)" class="space-y-3.5">
-                <div>
-                    <label class="block text-xs font-extrabold text-slate-700 mb-1">اسم الكابتن / الشهرة *</label>
-                    <input type="text" id="newDriverName" required placeholder="مثال: الأسطى يوسف محمد" class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-extrabold text-slate-700 mb-1">الكابتن منين؟ (البلد / القرية / الموقف) *</label>
-                    <input type="text" id="newDriverLocation" required placeholder="مثال: المناصافور - موقف ديرب نجم" class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none">
-                </div>
-
-                <div class="grid grid-cols-2 gap-2.5">
-                    <div>
-                        <label class="block text-xs font-extrabold text-slate-700 mb-1">رقم الموبايل / واتساب *</label>
-                        <input type="tel" id="newDriverPhone" required placeholder="010xxxxxxxx" pattern="[0-9]{11}" class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none text-left" dir="ltr">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-extrabold text-slate-700 mb-1">نوع المركبة *</label>
-                        <select id="newDriverVehicle" class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl px-3 py-2.5 text-sm font-bold outline-none">
-                            <option value="توك توك">توك توك</option>
-                            <option value="تمناية (سوزوكي)">تمناية (سوزوكي)</option>
-                            <option value="ملاكي">ملاكي</option>
-                            <option value="موتوسيكل">موتوسيكل</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-extrabold text-slate-700 mb-1">ملاحظة إضافية (اختياري)</label>
-                    <input type="text" id="newDriverNote" placeholder="مثال: متاح 24 ساعة - توصيل مشاوير خاصة وطلبات" class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none">
-            <!-- زر تعديل بيانات الكابتن -->
             <button onclick="openModal('registerModal')" class="bg-slate-950 hover:bg-slate-800 active:scale-95 transition text-amber-400 text-xs sm:text-sm font-bold px-3.5 py-2.5 rounded-xl shadow flex items-center gap-1.5">
                 <i class="fa-solid fa-pen-to-square"></i>
                 <span>تعديل الكابتن</span>
@@ -188,10 +61,8 @@
     <!-- المحتوى الرئيسي -->
     <main class="flex-1 max-w-2xl w-full mx-auto px-4 pt-5 pb-24">
         
-        <!-- بطاقة الكابتن الوحيد -->
         <div id="driverCardContainer"></div>
 
-        <!-- حالة عدم تسجيل الكابتن بعد -->
         <div id="emptyState" class="hidden text-center py-12 bg-white rounded-3xl border border-slate-200/80 shadow-xs mt-2 px-4">
             <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl">
                 <i class="fa-solid fa-taxi"></i>
@@ -223,7 +94,7 @@
             <form id="driverForm" onsubmit="handleSaveDriver(event)" class="space-y-3.5">
                 <div>
                     <label class="block text-xs font-extrabold text-slate-700 mb-1">اسم الكابتن / الشهرة *</label>
-                    <input type="text" id="newDriverName" required placeholder="مثال: الأسطى يوسف محمد" class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none">
+                    <input type="text" id="newDriverName" required placeholder="مثال: يوسف رسلان" class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none">
                 </div>
 
                 <div>
@@ -234,7 +105,7 @@
                 <div class="grid grid-cols-2 gap-2.5">
                     <div>
                         <label class="block text-xs font-extrabold text-slate-700 mb-1">رقم الموبايل / واتساب *</label>
-                        <input type="tel" id="newDriverPhone" required placeholder="010xxxxxxxx" pattern="[0-9]{11}" class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none text-left" dir="ltr">
+                        <input type="tel" id="newDriverPhone" required placeholder="010xxxxxxxx" pattern="[0-9]{10,15}" class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none text-left" dir="ltr">
                     </div>
                     <div>
                         <label class="block text-xs font-extrabold text-slate-700 mb-1">نوع المركبة *</label>
@@ -249,12 +120,12 @@
 
                 <div>
                     <label class="block text-xs font-extrabold text-slate-700 mb-1">ملاحظة إضافية (اختياري)</label>
-                    <input type="text" id="newDriverNote" placeholder="مثال: متاح 24 ساعة - توصيل مشاوير خاصة وطلبات" class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none">
+                    <input type="text" id="newDriverNote" placeholder="مثال: متاح 24 ساعة - توصيل مشاوير خاصة" class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none">
                 </div>
 
-                <button type="submit" id="submitDriverBtn" class="w-full bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-slate-950 font-black py-3 rounded-xl shadow-md transition mt-2 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-check-circle"></i>
-                    <span>حفظ ونشر بيانات الكابتن</span>
+                <button type="submit" id="submitDriverBtn" class="w-full bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-slate-950 font-black py-3.5 rounded-xl shadow-md transition mt-3 flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    <span>حفظ بيانات الكابتن</span>
                 </button>
             </form>
         </div>
@@ -271,9 +142,7 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // إعدادات الربط بقاعدة البيانات السحابية
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'toktok-ymf-app';
-        // ضع بيانات مشروعك هنا إذا كنت سترفع الملف خارج هذه المنصة على GitHub Pages
         const defaultFirebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -284,8 +153,8 @@
         };
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : defaultFirebaseConfig;
 
-        // مستند ثابت لكابتن واحد في قاعدة البيانات العامة ليظهر عند الجميع
         const SINGLE_DRIVER_DOC_ID = 'main_captain';
+        const LOCAL_STORAGE_KEY = 'mashwarak_single_driver_v1';
 
         let db = null;
         let auth = null;
@@ -294,6 +163,21 @@
 
         function getSingleDriverRef() {
             return doc(db, 'artifacts', appId, 'public', 'data', 'drivers', SINGLE_DRIVER_DOC_ID);
+        }
+
+        function saveLocalDriver(driver) {
+            try {
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(driver));
+            } catch (_) {}
+        }
+
+        function loadLocalDriver() {
+            try {
+                const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (_) {
+                return null;
+            }
         }
 
         function fillFormWithDriver(driver) {
@@ -305,12 +189,13 @@
             document.getElementById('newDriverNote').value = driver.note || '';
         }
 
-        // تهيئة الاتصال والمصادقة ثم الاستماع الفوري لبيانات الكابتن الوحيد
         async function initDatabase() {
+            singleDriver = loadLocalDriver();
+            fillFormWithDriver(singleDriver);
+            renderSingleDriver(singleDriver);
+
             try {
                 if (!firebaseConfig || !firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
-                    renderSingleDriver(null);
-                    showToast('أضف إعدادات قاعدة البيانات في الكود لظهوره للجميع');
                     return;
                 }
 
@@ -329,35 +214,39 @@
                 if (!currentUser) return;
 
                 onSnapshot(getSingleDriverRef(), (docSnap) => {
-                    singleDriver = docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
+                    if (docSnap.exists()) {
+                        singleDriver = { id: docSnap.id, ...docSnap.data() };
+                        saveLocalDriver(singleDriver);
+                    }
                     fillFormWithDriver(singleDriver);
                     renderSingleDriver(singleDriver);
                 }, (error) => {
                     console.error("خطأ في جلب بيانات الكابتن:", error);
-                    showToast('تعذر الاتصال بقاعدة البيانات حالياً');
                 });
 
             } catch (error) {
                 console.error("خطأ في تهيئة قاعدة البيانات:", error);
-                showToast('تعذر الاتصال بالسيرفر');
             }
         }
 
         window.toggleDriverStatus = async function(currentStatus) {
-            if (!currentUser || !db || !singleDriver) {
-                showToast('غير متصل بقاعدة البيانات');
-                return;
+            if (!singleDriver) return;
+            const nextStatus = !currentStatus;
+            singleDriver = { ...singleDriver, online: nextStatus, updatedAt: Date.now() };
+            saveLocalDriver(singleDriver);
+            renderSingleDriver(singleDriver);
+
+            if (currentUser && db) {
+                try {
+                    await updateDoc(getSingleDriverRef(), {
+                        online: nextStatus,
+                        updatedAt: Date.now()
+                    });
+                } catch (e) {
+                    console.error("خطأ في تحديث الحالة:", e);
+                }
             }
-            try {
-                await updateDoc(getSingleDriverRef(), {
-                    online: !currentStatus,
-                    updatedAt: Date.now()
-                });
-                showToast('تم تحديث حالة الكابتن للجميع');
-            } catch (e) {
-                console.error("خطأ في تحديث الحالة:", e);
-                showToast('حدث خطأ أثناء التحديث');
-            }
+            showToast('تم تحديث حالة الكابتن');
         };
 
         function renderSingleDriver(driver) {
@@ -375,7 +264,7 @@
             const cleanPhone = (driver.phone || '').replace(/\D/g, '');
             const waPhone = cleanPhone.startsWith('0') ? '2' + cleanPhone : cleanPhone;
             const waText = encodeURIComponent(`السلام عليكم يا ${driver.name}، جايلك من تطبيق مشوارك ومحتاج مشوار.`);
-            const isOnline = Boolean(driver.online);
+            const isOnline = driver.online !== false;
 
             container.innerHTML = `
                 <article class="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border ${isOnline ? 'border-slate-200/90' : 'border-slate-200/60 opacity-90'} transition">
@@ -392,7 +281,6 @@
                                     </span>
                                 </div>
                                 
-                                <!-- بلد الكابتن -->
                                 <div class="inline-flex items-center gap-1.5 mt-2 bg-amber-50 border border-amber-200/80 text-amber-900 px-3 py-1 rounded-xl text-xs sm:text-sm font-extrabold">
                                     <i class="fa-solid fa-location-dot text-amber-600"></i>
                                     <span>الكابتن من: ${driver.location || 'غير محدد'}</span>
@@ -400,7 +288,6 @@
                             </div>
                         </div>
 
-                        <!-- الحالة -->
                         <button 
                             onclick="toggleDriverStatus(${isOnline})" 
                             title="اضغط لتغيير الحالة"
@@ -422,7 +309,6 @@
                         </p>
                     ` : ''}
 
-                    <!-- أزرار التواصل المباشر -->
                     <div class="grid grid-cols-2 gap-3 pt-1">
                         <a 
                             href="tel:${cleanPhone}" 
@@ -448,11 +334,6 @@
 
         window.handleSaveDriver = async function(event) {
             event.preventDefault();
-            
-            if (!currentUser || !db) {
-                showToast('تأكد من إعدادات قاعدة البيانات أولاً');
-                return;
-            }
 
             const name = document.getElementById('newDriverName').value.trim();
             const location = document.getElementById('newDriverLocation').value.trim();
@@ -466,27 +347,36 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>جاري الحفظ...</span>';
 
-            try {
-                await setDoc(getSingleDriverRef(), {
-                    name,
-                    location,
-                    phone,
-                    vehicle,
-                    note,
-                    online: singleDriver ? Boolean(singleDriver.online) : true,
-                    updatedBy: currentUser.uid,
-                    updatedAt: Date.now()
-                }, { merge: true });
+            const payload = {
+                name,
+                location,
+                phone,
+                vehicle,
+                note,
+                online: singleDriver ? singleDriver.online !== false : true,
+                updatedAt: Date.now()
+            };
 
-                closeModal('registerModal');
-                showToast('تم حفظ بيانات الكابتن ونشرها للجميع!');
-            } catch (e) {
-                console.error("خطأ في حفظ الكابتن:", e);
-                showToast('حدث خطأ أثناء الحفظ، حاول مرة أخرى');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> <span>حفظ ونشر بيانات الكابتن</span>';
+            singleDriver = payload;
+            saveLocalDriver(payload);
+            renderSingleDriver(payload);
+
+            if (currentUser && db) {
+                try {
+                    await setDoc(getSingleDriverRef(), {
+                        ...payload,
+                        updatedBy: currentUser.uid
+                    }, { merge: true });
+                } catch (e) {
+                    console.error("خطأ في حفظ الكابتن:", e);
+                }
             }
+
+            closeModal('registerModal');
+            showToast('تم حفظ بيانات الكابتن بنجاح');
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> <span>حفظ بيانات الكابتن</span>';
         };
 
         window.openModal = function(id) {
@@ -518,4 +408,5 @@
         });
     </script>
 </body>
-            </html>
+</html>
+```
