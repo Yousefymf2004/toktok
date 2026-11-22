@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -51,8 +52,8 @@
             </div>
             
             <button onclick="openModal('registerModal')" class="bg-slate-950 hover:bg-slate-800 active:scale-95 transition text-amber-400 text-xs sm:text-sm font-bold px-3.5 py-2.5 rounded-xl shadow flex items-center gap-1.5">
-                <i class="fa-solid fa-pen-to-square"></i>
-                <span>تعديل الكابتن</span>
+                <i class="fa-solid fa-plus"></i>
+                <span>سجّل ككابتن</span>
             </button>
         </div>
     </header>
@@ -70,22 +71,48 @@
 
     <!-- المحتوى الرئيسي -->
     <main class="flex-1 max-w-2xl w-full mx-auto px-4 pt-3 pb-24">
-        <div id="driverCardContainer"></div>
+        <!-- شريط البحث والفلترة -->
+        <section class="bg-white rounded-2xl p-3.5 shadow-xs border border-slate-200/80 mb-4 space-y-2.5">
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <input
+                    type="text"
+                    id="searchInput"
+                    oninput="renderDriversList()"
+                    placeholder="ابحث بالبلد، القرية، الموقف، أو اسم الكابتن..."
+                    class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl pr-10 pl-4 py-2.5 text-sm font-semibold outline-none transition"
+                >
+            </div>
+            <div class="flex items-center justify-between gap-2">
+                <button
+                    type="button"
+                    id="onlyAvailableBtn"
+                    onclick="toggleOnlyAvailable()"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition"
+                >
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span>المتاحين فقط</span>
+                </button>
+                <span id="driversCountLabel" class="text-xs font-bold text-slate-500">0 كابتن</span>
+            </div>
+        </section>
+
+        <div id="driversListContainer" class="space-y-3.5"></div>
 
         <div id="emptyState" class="hidden bg-white rounded-3xl p-8 text-center border border-slate-200/80 shadow-xs mt-4">
             <div class="w-16 h-16 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-2xl mx-auto mb-3">
                 <i class="fa-solid fa-user-plus"></i>
             </div>
-            <h2 class="font-black text-base text-slate-900 mb-1">لا توجد بيانات كابتن مسجلة بعد</h2>
-            <p class="text-xs text-slate-500 font-semibold mb-4">اضغط على زر تعديل الكابتن لإضافة بيانات الكابتن وحفظها على قاعدة البيانات.</p>
+            <h2 class="font-black text-base text-slate-900 mb-1">لا يوجد كباتن مطابقين حالياً</h2>
+            <p class="text-xs text-slate-500 font-semibold mb-4">يمكن لأي كابتن إضافة بياناته وتحديد رقم PIN خاص به للتحكم في حسابه.</p>
             <button onclick="openModal('registerModal')" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs sm:text-sm px-5 py-3 rounded-xl shadow transition inline-flex items-center gap-2">
                 <i class="fa-solid fa-plus"></i>
-                <span>إضافة بيانات الكابتن</span>
+                <span>إضافة كابتن جديد</span>
             </button>
         </div>
     </main>
 
-    <!-- نافذة إعداد / تعديل بيانات الكابتن -->
+    <!-- نافذة تسجيل / تعديل بيانات الكابتن مع رقم PIN الخاص به -->
     <div id="registerModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 hidden items-end sm:items-center justify-center p-0 sm:p-4">
         <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl transform transition-all max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
@@ -93,7 +120,7 @@
                     <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
                         <i class="fa-solid fa-id-card"></i>
                     </span>
-                    <h2 class="font-black text-lg text-slate-900">بيانات الكابتن</h2>
+                    <h2 id="registerModalTitle" class="font-black text-lg text-slate-900">سجّل بياناتك ككابتن</h2>
                 </div>
                 <button onclick="closeModal('registerModal')" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center">
                     <i class="fa-solid fa-xmark"></i>
@@ -101,6 +128,8 @@
             </div>
 
             <form id="driverForm" onsubmit="handleSaveDriver(event)" class="space-y-3.5">
+                <input type="hidden" id="editingDriverId" value="">
+
                 <div>
                     <label class="block text-xs font-extrabold text-slate-700 mb-1">اسم الكابتن / الشهرة *</label>
                     <input type="text" id="newDriverName" required placeholder="مثال: يوسف رسلان" class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none">
@@ -128,13 +157,47 @@
                 </div>
 
                 <div>
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1">رقم PIN السري الخاص بك (4 إلى 8 أرقام) *</label>
+                    <input type="password" id="newDriverPin" required minlength="4" maxlength="8" pattern="[0-9]{4,8}" inputmode="numeric" placeholder="مثال: 1234" class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm font-bold outline-none text-left tracking-widest" dir="ltr">
+                    <p class="text-[11px] text-slate-500 font-semibold mt-1">هتحتاجه لما تحب تغير حالتك (متاح/مشغول) أو تعدل أو تحذف بياناتك.</p>
+                </div>
+
+                <div>
                     <label class="block text-xs font-extrabold text-slate-700 mb-1">ملاحظة إضافية (اختياري)</label>
                     <input type="text" id="newDriverNote" placeholder="مثال: متاح 24 ساعة - توصيل مشاوير خاصة" class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm font-semibold outline-none">
                 </div>
 
                 <button type="submit" id="submitDriverBtn" class="w-full bg-amber-500 hover:bg-amber-600 active:scale-[0.99] text-slate-950 font-black py-3.5 rounded-xl shadow-md transition mt-3 flex items-center justify-center gap-2 text-sm">
                     <i class="fa-solid fa-floppy-disk"></i>
-                    <span>حفظ بيانات الكابتن</span>
+                    <span id="submitDriverBtnText">حفظ بيانات الكابتن</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- نافذة التحقق برقم PIN للتحكم في كابتن محدد -->
+    <div id="pinModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 hidden items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full max-w-sm rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl transform transition-all">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center">
+                        <i class="fa-solid fa-lock"></i>
+                    </span>
+                    <h2 id="pinModalTitle" class="font-black text-base text-slate-900">تأكيد رقم PIN الخاص بالكابتن</h2>
+                </div>
+                <button onclick="closeModal('pinModal')" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="pinForm" onsubmit="handleVerifyPin(event)" class="space-y-3.5">
+                <p id="pinModalSubtitle" class="text-xs font-semibold text-slate-600">أدخل رقم PIN السري الخاص بهذا الكابتن لإتمام الإجراء.</p>
+                <div>
+                    <input type="password" id="pinInput" required minlength="4" maxlength="8" pattern="[0-9]{4,8}" inputmode="numeric" placeholder="أدخل رقم PIN" class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl px-3.5 py-2.5 text-sm font-bold outline-none text-center tracking-widest" dir="ltr">
+                    <p id="pinErrorMsg" class="hidden text-xs font-bold text-rose-600 mt-1.5">رقم PIN غير صحيح لهذا الكابتن</p>
+                </div>
+                <button type="submit" class="w-full bg-slate-950 hover:bg-slate-800 text-amber-400 font-black py-3 rounded-xl shadow transition text-sm">
+                    تأكيد
                 </button>
             </form>
         </div>
@@ -148,11 +211,14 @@
 
     <script>
         const DATABASE_URL = 'https://mishwark-4dfba-default-rtdb.firebaseio.com';
-        const DRIVER_ENDPOINT = `${DATABASE_URL}/main_captain.json`;
-        const LOCAL_STORAGE_KEY = 'mashwarak_single_driver_v1';
+        const DRIVERS_ENDPOINT = `${DATABASE_URL}/drivers.json`;
+        const LEGACY_SINGLE_ENDPOINT = `${DATABASE_URL}/main_captain.json`;
+        const LOCAL_STORAGE_KEY = 'mashwarak_drivers_list_v1';
 
-        let singleDriver = null;
+        let driversList = [];
+        let onlyAvailable = false;
         let pollTimer = null;
+        let pendingPinAction = null; // { driverId, actionType: 'toggleStatus' | 'edit' | 'delete' }
 
         function setCloudStatus(state, message) {
             const box = document.getElementById('cloudStatusBox');
@@ -182,33 +248,44 @@
             }
         }
 
-        function saveLocalDriver(driver) {
+        function saveLocalDrivers(list) {
             try {
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(driver));
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(list));
             } catch (_) {}
         }
 
-        function loadLocalDriver() {
+        function loadLocalDrivers() {
             try {
                 const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-                return raw ? JSON.parse(raw) : null;
+                const parsed = raw ? JSON.parse(raw) : [];
+                return Array.isArray(parsed) ? parsed : [];
             } catch (_) {
-                return null;
+                return [];
             }
         }
 
-        function fillFormWithDriver(driver) {
-            if (!driver) return;
-            document.getElementById('newDriverName').value = driver.name || '';
-            document.getElementById('newDriverLocation').value = driver.location || '';
-            document.getElementById('newDriverPhone').value = driver.phone || '';
-            document.getElementById('newDriverVehicle').value = driver.vehicle || 'توك توك';
-            document.getElementById('newDriverNote').value = driver.note || '';
+        function normalizeDriversMap(rawData) {
+            if (!rawData) return [];
+            if (Array.isArray(rawData)) {
+                return rawData.filter(Boolean).map((item, idx) => ({
+                    id: item.id || `drv_${idx}`,
+                    ...item
+                }));
+            }
+            if (typeof rawData === 'object') {
+                return Object.entries(rawData)
+                    .filter(([, val]) => val && typeof val === 'object' && val.name && val.phone)
+                    .map(([key, val]) => ({
+                        id: val.id || key,
+                        ...val
+                    }));
+            }
+            return [];
         }
 
-        async function fetchDriverFromDatabase(isInitial = false) {
+        async function fetchDriversFromDatabase(isInitial = false) {
             try {
-                const response = await fetch(DRIVER_ENDPOINT, { cache: 'no-store' });
+                const response = await fetch(DRIVERS_ENDPOINT, { cache: 'no-store' });
                 if (!response.ok) {
                     if (response.status === 401 || response.status === 403) {
                         setCloudStatus('error', 'قواعد Realtime Database تمنع القراءة — اجعل القراءة مفتوحة (.read: true)');
@@ -219,30 +296,45 @@
                 }
 
                 const data = await response.json();
-                setCloudStatus('connected', 'متصل بقاعدة البيانات — بيانات الكابتن تظهر في أي تليفون');
+                setCloudStatus('connected', 'متصل بقاعدة البيانات — أي كابتن يضيف نفسه يظهر للجميع');
 
-                if (data && data.name && data.phone) {
-                    singleDriver = data;
-                    saveLocalDriver(data);
-                    fillFormWithDriver(data);
-                    renderSingleDriver(data);
-                } else if (isInitial && singleDriver && singleDriver.name && singleDriver.phone) {
-                    await pushDriverToDatabase(singleDriver);
-                } else if (!data) {
-                    singleDriver = null;
-                    renderSingleDriver(null);
+                let normalized = normalizeDriversMap(data);
+
+                // نقل الكابتن القديم إن وُجد في main_captain ولم يكن هناك كباتن بعد في drivers
+                if (isInitial && normalized.length === 0) {
+                    try {
+                        const legacyRes = await fetch(LEGACY_SINGLE_ENDPOINT, { cache: 'no-store' });
+                        if (legacyRes.ok) {
+                            const legacyDriver = await legacyRes.json();
+                            if (legacyDriver && legacyDriver.name && legacyDriver.phone) {
+                                const migratedId = legacyDriver.id || 'cap_legacy_1';
+                                const migratedDriver = {
+                                    ...legacyDriver,
+                                    id: migratedId,
+                                    pin: legacyDriver.pin || '2026'
+                                };
+                                await upsertDriverInDatabase(migratedDriver);
+                                normalized = [migratedDriver];
+                            }
+                        }
+                    } catch (_) {}
                 }
+
+                driversList = normalized.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+                saveLocalDrivers(driversList);
+                renderDriversList();
             } catch (err) {
                 console.error('Database fetch error:', err);
                 setCloudStatus('error', 'تعذر الاتصال بالإنترنت أو بقاعدة البيانات');
             }
         }
 
-        async function pushDriverToDatabase(driverData) {
-            const response = await fetch(DRIVER_ENDPOINT, {
+        async function upsertDriverInDatabase(driverObj) {
+            const endpoint = `${DATABASE_URL}/drivers/${encodeURIComponent(driverObj.id)}.json`;
+            const response = await fetch(endpoint, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(driverData)
+                body: JSON.stringify(driverObj)
             });
 
             if (!response.ok) {
@@ -252,34 +344,41 @@
                 throw new Error(`HTTP ${response.status}`);
             }
 
-            setCloudStatus('connected', 'متصل بقاعدة البيانات — بيانات الكابتن تظهر في أي تليفون');
+            setCloudStatus('connected', 'متصل بقاعدة البيانات — أي كابتن يضيف نفسه يظهر للجميع');
             return await response.json();
         }
 
+        async function deleteDriverFromDatabase(driverId) {
+            const endpoint = `${DATABASE_URL}/drivers/${encodeURIComponent(driverId)}.json`;
+            const response = await fetch(endpoint, { method: 'DELETE' });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+        }
+
         function startLiveStream() {
-            fetchDriverFromDatabase(true);
+            fetchDriversFromDatabase(true);
 
             try {
-                const eventSource = new EventSource(DRIVER_ENDPOINT);
+                const eventSource = new EventSource(DRIVERS_ENDPOINT);
                 eventSource.addEventListener('put', (event) => {
                     try {
                         const payload = JSON.parse(event.data);
                         const nextData = payload ? payload.data : null;
                         setCloudStatus('connected', 'متصل بقاعدة البيانات — تحديث لحظي لجميع الأجهزة');
 
-                        if (nextData && nextData.name && nextData.phone) {
-                            singleDriver = nextData;
-                            saveLocalDriver(nextData);
-                            fillFormWithDriver(nextData);
-                            renderSingleDriver(nextData);
-                        } else if (nextData === null) {
-                            singleDriver = null;
-                            renderSingleDriver(null);
+                        if (payload && payload.path && payload.path !== '/' && payload.path !== '') {
+                            // تحديث عنصر فرعي
+                            fetchDriversFromDatabase(false);
+                        } else {
+                            driversList = normalizeDriversMap(nextData).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+                            saveLocalDrivers(driversList);
+                            renderDriversList();
                         }
                     } catch (_) {}
                 });
                 eventSource.addEventListener('patch', () => {
-                    fetchDriverFromDatabase(false);
+                    fetchDriversFromDatabase(false);
                 });
                 eventSource.onerror = () => {
                     // يعتمد على المزامنة الدورية في حال انقطاع البث المباشر مؤقتاً
@@ -288,32 +387,142 @@
 
             if (pollTimer) clearInterval(pollTimer);
             pollTimer = setInterval(() => {
-                fetchDriverFromDatabase(false);
+                fetchDriversFromDatabase(false);
             }, 6000);
         }
 
-        window.toggleDriverStatus = async function(currentStatus) {
-            if (!singleDriver) return;
-            const nextStatus = !currentStatus;
-            const updated = { ...singleDriver, online: nextStatus, updatedAt: Date.now() };
-            singleDriver = updated;
-            saveLocalDriver(updated);
-            renderSingleDriver(updated);
+        window.toggleOnlyAvailable = function() {
+            onlyAvailable = !onlyAvailable;
+            const btn = document.getElementById('onlyAvailableBtn');
+            if (onlyAvailable) {
+                btn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold border border-emerald-300 bg-emerald-50 text-emerald-800 transition';
+            } else {
+                btn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition';
+            }
+            renderDriversList();
+        };
 
-            try {
-                await pushDriverToDatabase(updated);
-                showToast('تم تحديث الحالة على قاعدة البيانات');
-            } catch (err) {
-                console.error('Status update error:', err);
-                showToast('تم التحديث محلياً — تحقق من قواعد قاعدة البيانات');
+        function getFilteredDrivers() {
+            const q = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+            return driversList.filter((d) => {
+                if (!d || !d.name || !d.phone) return false;
+                if (onlyAvailable && d.online === false) return false;
+                if (!q) return true;
+                const hay = `${d.name} ${d.location || ''} ${d.vehicle || ''} ${d.note || ''}`.toLowerCase();
+                return hay.includes(q);
+            });
+        }
+
+        window.requestPinAction = function(driverId, actionType) {
+            const driver = driversList.find((d) => d.id === driverId);
+            if (!driver) return;
+
+            pendingPinAction = { driverId, actionType };
+            const titleEl = document.getElementById('pinModalTitle');
+            const subEl = document.getElementById('pinModalSubtitle');
+            const inputEl = document.getElementById('pinInput');
+            const errEl = document.getElementById('pinErrorMsg');
+
+            errEl.classList.add('hidden');
+            inputEl.value = '';
+
+            if (actionType === 'toggleStatus') {
+                titleEl.textContent = 'تغيير حالة الكابتن';
+                subEl.textContent = `أدخل رقم PIN الخاص بـ (${driver.name}) لتغيير الحالة إلى ${driver.online !== false ? 'مشغول' : 'متاح الآن'}.`;
+            } else if (actionType === 'edit') {
+                titleEl.textContent = 'تعديل بيانات الكابتن';
+                subEl.textContent = `أدخل رقم PIN الخاص بـ (${driver.name}) لتعديل بياناته.`;
+            } else if (actionType === 'delete') {
+                titleEl.textContent = 'حذف بطاقة الكابتن';
+                subEl.textContent = `أدخل رقم PIN الخاص بـ (${driver.name}) لحذف الكابتن نهائياً.`;
+            }
+
+            openModal('pinModal');
+            setTimeout(() => inputEl.focus(), 100);
+        };
+
+        window.handleVerifyPin = async function(event) {
+            event.preventDefault();
+            if (!pendingPinAction) return;
+
+            const { driverId, actionType } = pendingPinAction;
+            const driver = driversList.find((d) => d.id === driverId);
+            const enteredPin = document.getElementById('pinInput').value.trim();
+            const errEl = document.getElementById('pinErrorMsg');
+
+            if (!driver || String(driver.pin || '') !== enteredPin) {
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            errEl.classList.add('hidden');
+            closeModal('pinModal');
+            pendingPinAction = null;
+
+            if (actionType === 'toggleStatus') {
+                const nextStatus = driver.online === false ? true : false;
+                const updated = { ...driver, online: nextStatus, updatedAt: Date.now() };
+                driversList = driversList.map((d) => (d.id === driverId ? updated : d));
+                saveLocalDrivers(driversList);
+                renderDriversList();
+
+                try {
+                    await upsertDriverInDatabase(updated);
+                    showToast('تم تحديث الحالة بنجاح');
+                } catch (err) {
+                    console.error('Status update error:', err);
+                    showToast('تم التحديث محلياً — تحقق من قواعد قاعدة البيانات');
+                }
+            } else if (actionType === 'edit') {
+                openEditDriverModal(driver);
+            } else if (actionType === 'delete') {
+                driversList = driversList.filter((d) => d.id !== driverId);
+                saveLocalDrivers(driversList);
+                renderDriversList();
+
+                try {
+                    await deleteDriverFromDatabase(driverId);
+                    showToast('تم حذف الكابتن بنجاح');
+                } catch (err) {
+                    console.error('Delete error:', err);
+                    showToast('تم الحذف محلياً — تحقق من قواعد قاعدة البيانات');
+                }
             }
         };
 
-        function renderSingleDriver(driver) {
-            const container = document.getElementById('driverCardContainer');
-            const emptyState = document.getElementById('emptyState');
+        function openEditDriverModal(driver) {
+            document.getElementById('registerModalTitle').textContent = 'تعديل بيانات الكابتن';
+            document.getElementById('submitDriverBtnText').textContent = 'حفظ التعديلات';
+            document.getElementById('editingDriverId').value = driver.id;
+            document.getElementById('newDriverName').value = driver.name || '';
+            document.getElementById('newDriverLocation').value = driver.location || '';
+            document.getElementById('newDriverPhone').value = driver.phone || '';
+            document.getElementById('newDriverVehicle').value = driver.vehicle || 'توك توك';
+            document.getElementById('newDriverPin').value = driver.pin || '';
+            document.getElementById('newDriverNote').value = driver.note || '';
 
-            if (!driver || !driver.name || !driver.phone) {
+            const modal = document.getElementById('registerModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function resetRegisterFormForNew() {
+            document.getElementById('registerModalTitle').textContent = 'سجّل بياناتك ككابتن';
+            document.getElementById('submitDriverBtnText').textContent = 'حفظ بيانات الكابتن';
+            document.getElementById('editingDriverId').value = '';
+            document.getElementById('driverForm').reset();
+            document.getElementById('newDriverVehicle').value = 'توك توك';
+        }
+
+        function renderDriversList() {
+            const container = document.getElementById('driversListContainer');
+            const emptyState = document.getElementById('emptyState');
+            const countLabel = document.getElementById('driversCountLabel');
+
+            const filtered = getFilteredDrivers();
+            countLabel.textContent = `${filtered.length} كابتن`;
+
+            if (!filtered.length) {
                 container.innerHTML = '';
                 emptyState.classList.remove('hidden');
                 return;
@@ -321,123 +530,166 @@
 
             emptyState.classList.add('hidden');
 
-            const cleanPhone = (driver.phone || '').replace(/\D/g, '');
-            const waPhone = cleanPhone.startsWith('0') ? '2' + cleanPhone : cleanPhone;
-            const waText = encodeURIComponent(`السلام عليكم يا ${driver.name}، جايلك من تطبيق مشوارك ومحتاج مشوار.`);
-            const isOnline = driver.online !== false;
+            container.innerHTML = filtered.map((driver) => {
+                const cleanPhone = (driver.phone || '').replace(/\D/g, '');
+                const waPhone = cleanPhone.startsWith('0') ? '2' + cleanPhone : cleanPhone;
+                const waText = encodeURIComponent(`السلام عليكم يا ${driver.name}، جايلك من تطبيق مشوارك ومحتاج مشوار.`);
+                const isOnline = driver.online !== false;
 
-            container.innerHTML = `
-                <article class="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border ${isOnline ? 'border-slate-200/90' : 'border-slate-200/60 opacity-90'} transition">
-                    <div class="flex items-start justify-between gap-3 mb-4">
-                        <div class="flex items-center gap-3.5">
-                            <div class="w-14 h-14 rounded-2xl ${isOnline ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'} flex items-center justify-center text-2xl font-black shrink-0">
-                                <i class="fa-solid ${driver.vehicle && (driver.vehicle.includes('تمناية') || driver.vehicle.includes('ملاكي')) ? 'fa-car-side' : 'fa-motorcycle'}"></i>
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <h2 class="font-black text-lg sm:text-xl text-slate-900">${driver.name}</h2>
-                                    <span class="text-xs font-extrabold px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700">
-                                        ${driver.vehicle || 'توك توك'}
-                                    </span>
+                return `
+                    <article class="bg-white rounded-3xl p-4 sm:p-5 shadow-xs border ${isOnline ? 'border-slate-200/90' : 'border-slate-200/60 opacity-90'} transition">
+                        <div class="flex items-start justify-between gap-2.5 mb-3.5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl ${isOnline ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'} flex items-center justify-center text-xl sm:text-2xl font-black shrink-0">
+                                    <i class="fa-solid ${driver.vehicle && (driver.vehicle.includes('تمناية') || driver.vehicle.includes('ملاكي')) ? 'fa-car-side' : 'fa-motorcycle'}"></i>
                                 </div>
-                                
-                                <div class="inline-flex items-center gap-1.5 mt-2 bg-amber-50 border border-amber-200/80 text-amber-900 px-3 py-1 rounded-xl text-xs sm:text-sm font-extrabold">
-                                    <i class="fa-solid fa-location-dot text-amber-600"></i>
-                                    <span>الكابتن من: ${driver.location || 'غير محدد'}</span>
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h2 class="font-black text-base sm:text-lg text-slate-900">${driver.name}</h2>
+                                        <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700">
+                                            ${driver.vehicle || 'توك توك'}
+                                        </span>
+                                    </div>
+
+                                    <div class="inline-flex items-center gap-1.5 mt-1.5 bg-amber-50 border border-amber-200/80 text-amber-900 px-2.5 py-1 rounded-xl text-xs font-extrabold">
+                                        <i class="fa-solid fa-location-dot text-amber-600"></i>
+                                        <span>${driver.location || 'غير محدد'}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col items-end gap-1.5 shrink-0">
+                                <button
+                                    type="button"
+                                    onclick="requestPinAction('${driver.id}', 'toggleStatus')"
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-extrabold border transition ${
+                                        isOnline
+                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                        : 'bg-slate-100 text-slate-500 border-slate-200'
+                                    }"
+                                >
+                                    <span class="w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 status-pulse' : 'bg-slate-400'}"></span>
+                                    <span>${isOnline ? 'متاح الآن' : 'مشغول'}</span>
+                                </button>
+
+                                <div class="flex items-center gap-1">
+                                    <button
+                                        type="button"
+                                        onclick="requestPinAction('${driver.id}', 'edit')"
+                                        title="تعديل بـ PIN"
+                                        class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold inline-flex items-center gap-1 transition"
+                                    >
+                                        <i class="fa-solid fa-key text-amber-600"></i>
+                                        <span>تعديل</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onclick="requestPinAction('${driver.id}', 'delete')"
+                                        title="حذف بـ PIN"
+                                        class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-bold inline-flex items-center gap-1 transition"
+                                    >
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
-                        <button 
-                            onclick="toggleDriverStatus(${isOnline})" 
-                            title="اضغط لتغيير الحالة"
-                            class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-extrabold border transition ${
-                                isOnline 
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                                : 'bg-slate-100 text-slate-500 border-slate-200'
-                            }"
-                        >
-                            <span class="w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-emerald-500 status-pulse' : 'bg-slate-400'}"></span>
-                            <span>${isOnline ? 'متاح الآن' : 'مشغول'}</span>
-                        </button>
-                    </div>
+                        ${driver.note ? `
+                            <p class="text-xs sm:text-sm text-slate-600 bg-slate-50 rounded-2xl px-3.5 py-2 mb-3.5 font-semibold border border-slate-100">
+                                <i class="fa-solid fa-circle-info text-amber-500 ml-1.5"></i>
+                                ${driver.note}
+                            </p>
+                        ` : ''}
 
-                    ${driver.note ? `
-                        <p class="text-xs sm:text-sm text-slate-600 bg-slate-50 rounded-2xl px-3.5 py-2.5 mb-4 font-semibold border border-slate-100">
-                            <i class="fa-solid fa-circle-info text-amber-500 ml-1.5"></i>
-                            ${driver.note}
-                        </p>
-                    ` : ''}
+                        <div class="grid grid-cols-2 gap-2.5 pt-0.5">
+                            <a
+                                href="tel:${cleanPhone}"
+                                class="flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 active:scale-[0.98] text-white font-extrabold text-xs sm:text-sm py-3 rounded-2xl shadow-xs transition"
+                            >
+                                <i class="fa-solid fa-phone text-amber-400"></i>
+                                <span>اتصال مباشر</span>
+                            </a>
 
-                    <div class="grid grid-cols-2 gap-3 pt-1">
-                        <a 
-                            href="tel:${cleanPhone}" 
-                            class="flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 active:scale-[0.98] text-white font-extrabold text-sm sm:text-base py-3.5 rounded-2xl shadow-xs transition"
-                        >
-                            <i class="fa-solid fa-phone text-amber-400"></i>
-                            <span>اتصال مباشر</span>
-                        </a>
-
-                        <a 
-                            href="https://wa.me/${waPhone}?text=${waText}" 
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-extrabold text-sm sm:text-base py-3.5 rounded-2xl shadow-xs transition"
-                        >
-                            <i class="fa-brands fa-whatsapp text-lg"></i>
-                            <span>واتساب</span>
-                        </a>
-                    </div>
-                </article>
-            `;
+                            <a
+                                href="https://wa.me/${waPhone}?text=${waText}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-extrabold text-xs sm:text-sm py-3 rounded-2xl shadow-xs transition"
+                            >
+                                <i class="fa-brands fa-whatsapp text-base"></i>
+                                <span>واتساب</span>
+                            </a>
+                        </div>
+                    </article>
+                `;
+            }).join('');
         }
 
         window.handleSaveDriver = async function(event) {
             event.preventDefault();
 
+            const editingId = document.getElementById('editingDriverId').value.trim();
             const name = document.getElementById('newDriverName').value.trim();
             const location = document.getElementById('newDriverLocation').value.trim();
             const phone = document.getElementById('newDriverPhone').value.trim();
             const vehicle = document.getElementById('newDriverVehicle').value;
+            const pin = document.getElementById('newDriverPin').value.trim();
             const note = document.getElementById('newDriverNote').value.trim();
 
-            if (!name || !location || !phone) return;
+            if (!name || !location || !phone || !/^[0-9]{4,8}$/.test(pin)) {
+                showToast('تأكد من إدخال رقم PIN مكون من 4 إلى 8 أرقام');
+                return;
+            }
 
             const btn = document.getElementById('submitDriverBtn');
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>جاري الحفظ...</span>';
 
+            const existing = editingId ? driversList.find((d) => d.id === editingId) : null;
+            const driverId = existing ? existing.id : `cap_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+
             const payload = {
+                id: driverId,
                 name,
                 location,
                 phone,
                 vehicle,
+                pin,
                 note,
-                online: singleDriver ? singleDriver.online !== false : true,
+                online: existing ? existing.online !== false : true,
                 updatedAt: Date.now()
             };
 
-            singleDriver = payload;
-            saveLocalDriver(payload);
-            renderSingleDriver(payload);
+            if (existing) {
+                driversList = driversList.map((d) => (d.id === driverId ? payload : d));
+            } else {
+                driversList = [payload, ...driversList];
+            }
+            driversList.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+
+            saveLocalDrivers(driversList);
+            renderDriversList();
 
             let savedCloud = false;
             try {
-                await pushDriverToDatabase(payload);
+                await upsertDriverInDatabase(payload);
                 savedCloud = true;
             } catch (err) {
                 console.error('Save error:', err);
             }
 
             closeModal('registerModal');
-            showToast(savedCloud ? 'تم حفظ الكابتن ويظهر الآن في أي تليفون' : 'تم الحفظ محلياً فقط');
+            resetRegisterFormForNew();
+            showToast(savedCloud ? 'تم حفظ الكابتن ورقم PIN بنجاح' : 'تم الحفظ محلياً — تحقق من قواعد قاعدة البيانات');
 
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> <span>حفظ بيانات الكابتن</span>';
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> <span id="submitDriverBtnText">حفظ بيانات الكابتن</span>';
         };
 
         window.openModal = function(id) {
-            fillFormWithDriver(singleDriver);
+            if (id === 'registerModal') {
+                resetRegisterFormForNew();
+            }
             const modal = document.getElementById(id);
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -447,6 +699,9 @@
             const modal = document.getElementById(id);
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+            if (id === 'registerModal') {
+                resetRegisterFormForNew();
+            }
         };
 
         function showToast(msg) {
@@ -461,11 +716,11 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            singleDriver = loadLocalDriver();
-            fillFormWithDriver(singleDriver);
-            renderSingleDriver(singleDriver);
+            driversList = loadLocalDrivers();
+            renderDriversList();
             startLiveStream();
         });
     </script>
 </body>
 </html>
+```
