@@ -57,22 +57,32 @@
         </div>
     </header>
 
+    <!-- شريط حالة الربط السحابي -->
+    <div id="cloudStatusBanner" class="max-w-2xl w-full mx-auto px-4 pt-3">
+        <div id="cloudStatusBox" class="bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl px-3.5 py-2.5 text-xs font-bold flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <span id="cloudStatusDot" class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                <span id="cloudStatusText">جاري الاتصال بقاعدة البيانات...</span>
+            </div>
+            <span id="cloudModeBadge" class="text-[11px] px-2 py-0.5 rounded-lg bg-white/80 border border-amber-200/70">جاري الفحص</span>
+        </div>
+    </div>
+
     <!-- المحتوى الرئيسي -->
-    <main class="flex-1 max-w-2xl w-full mx-auto px-4 pt-5 pb-24">
-        
+    <main class="flex-1 max-w-2xl w-full mx-auto px-4 pt-3 pb-24">
         <div id="driverCardContainer"></div>
 
-        <div id="emptyState" class="hidden text-center py-12 bg-white rounded-3xl border border-slate-200/80 shadow-xs mt-2 px-4">
-            <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl">
-                <i class="fa-solid fa-taxi"></i>
+        <div id="emptyState" class="hidden bg-white rounded-3xl p-8 text-center border border-slate-200/80 shadow-xs mt-4">
+            <div class="w-16 h-16 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-2xl mx-auto mb-3">
+                <i class="fa-solid fa-user-plus"></i>
             </div>
-            <h3 class="font-extrabold text-slate-900 text-base">لم يتم إضافة بيانات الكابتن بعد</h3>
-            <p class="text-xs text-slate-500 mt-1 mb-4">أضف اسم الكابتن، بلده، ورقم التواصل ليظهر للجميع فوراً</p>
-            <button onclick="openModal('registerModal')" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs px-5 py-2.5 rounded-xl shadow-sm transition">
-                إضافة بيانات الكابتن الآن
+            <h2 class="font-black text-base text-slate-900 mb-1">لا توجد بيانات كابتن مسجلة بعد</h2>
+            <p class="text-xs text-slate-500 font-semibold mb-4">اضغط على زر تعديل الكابتن لإضافة بيانات الكابتن وحفظها على قاعدة البيانات.</p>
+            <button onclick="openModal('registerModal')" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs sm:text-sm px-5 py-3 rounded-xl shadow transition inline-flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i>
+                <span>إضافة بيانات الكابتن</span>
             </button>
         </div>
-
     </main>
 
     <!-- نافذة إعداد / تعديل بيانات الكابتن -->
@@ -136,32 +146,40 @@
         <span id="toastMessage">تم الحفظ بنجاح</span>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'toktok-ymf-app';
-        const defaultFirebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : defaultFirebaseConfig;
-
-        const SINGLE_DRIVER_DOC_ID = 'main_captain';
+    <script>
+        const DATABASE_URL = 'https://mishwark-4dfba-default-rtdb.firebaseio.com';
+        const DRIVER_ENDPOINT = `${DATABASE_URL}/main_captain.json`;
         const LOCAL_STORAGE_KEY = 'mashwarak_single_driver_v1';
 
-        let db = null;
-        let auth = null;
-        let currentUser = null;
         let singleDriver = null;
+        let pollTimer = null;
 
-        function getSingleDriverRef() {
-            return doc(db, 'artifacts', appId, 'public', 'data', 'drivers', SINGLE_DRIVER_DOC_ID);
+        function setCloudStatus(state, message) {
+            const box = document.getElementById('cloudStatusBox');
+            const dot = document.getElementById('cloudStatusDot');
+            const text = document.getElementById('cloudStatusText');
+            const badge = document.getElementById('cloudModeBadge');
+
+            if (!box || !dot || !text || !badge) return;
+
+            text.textContent = message;
+
+            if (state === 'connected') {
+                box.className = 'bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-2xl px-3.5 py-2.5 text-xs font-bold flex items-center justify-between gap-2';
+                dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 status-pulse';
+                badge.className = 'text-[11px] px-2 py-0.5 rounded-lg bg-white text-emerald-700 border border-emerald-200';
+                badge.textContent = 'متصل مباشر';
+            } else if (state === 'error') {
+                box.className = 'bg-rose-50 border border-rose-200 text-rose-900 rounded-2xl px-3.5 py-2.5 text-xs font-bold flex items-center justify-between gap-2';
+                dot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500';
+                badge.className = 'text-[11px] px-2 py-0.5 rounded-lg bg-white text-rose-700 border border-rose-200';
+                badge.textContent = 'تنبيه قاعدة البيانات';
+            } else {
+                box.className = 'bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl px-3.5 py-2.5 text-xs font-bold flex items-center justify-between gap-2';
+                dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500';
+                badge.className = 'text-[11px] px-2 py-0.5 rounded-lg bg-white text-amber-800 border border-amber-200';
+                badge.textContent = 'جاري المزامنة';
+            }
         }
 
         function saveLocalDriver(driver) {
@@ -188,64 +206,107 @@
             document.getElementById('newDriverNote').value = driver.note || '';
         }
 
-        async function initDatabase() {
-            singleDriver = loadLocalDriver();
-            fillFormWithDriver(singleDriver);
-            renderSingleDriver(singleDriver);
-
+        async function fetchDriverFromDatabase(isInitial = false) {
             try {
-                if (!firebaseConfig || !firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
+                const response = await fetch(DRIVER_ENDPOINT, { cache: 'no-store' });
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        setCloudStatus('error', 'قواعد Realtime Database تمنع القراءة — اجعل القراءة مفتوحة (.read: true)');
+                    } else {
+                        setCloudStatus('error', `تعذر الوصول لقاعدة البيانات (${response.status})`);
+                    }
                     return;
                 }
 
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
+                const data = await response.json();
+                setCloudStatus('connected', 'متصل بقاعدة البيانات — بيانات الكابتن تظهر في أي تليفون');
 
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    const cred = await signInWithCustomToken(auth, __initial_auth_token);
-                    currentUser = cred.user;
-                } else {
-                    const cred = await signInAnonymously(auth);
-                    currentUser = cred.user;
+                if (data && data.name && data.phone) {
+                    singleDriver = data;
+                    saveLocalDriver(data);
+                    fillFormWithDriver(data);
+                    renderSingleDriver(data);
+                } else if (isInitial && singleDriver && singleDriver.name && singleDriver.phone) {
+                    await pushDriverToDatabase(singleDriver);
+                } else if (!data) {
+                    singleDriver = null;
+                    renderSingleDriver(null);
                 }
-
-                if (!currentUser) return;
-
-                onSnapshot(getSingleDriverRef(), (docSnap) => {
-                    if (docSnap.exists()) {
-                        singleDriver = { id: docSnap.id, ...docSnap.data() };
-                        saveLocalDriver(singleDriver);
-                    }
-                    fillFormWithDriver(singleDriver);
-                    renderSingleDriver(singleDriver);
-                }, (error) => {
-                    console.error("خطأ في جلب بيانات الكابتن:", error);
-                });
-
-            } catch (error) {
-                console.error("خطأ في تهيئة قاعدة البيانات:", error);
+            } catch (err) {
+                console.error('Database fetch error:', err);
+                setCloudStatus('error', 'تعذر الاتصال بالإنترنت أو بقاعدة البيانات');
             }
+        }
+
+        async function pushDriverToDatabase(driverData) {
+            const response = await fetch(DRIVER_ENDPOINT, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(driverData)
+            });
+
+            if (!response.ok) {
+                if (response.status === 401 || response.status === 403) {
+                    setCloudStatus('error', 'قواعد Realtime Database تمنع الكتابة — اجعل الكتابة متاحة (.write: true)');
+                }
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            setCloudStatus('connected', 'متصل بقاعدة البيانات — بيانات الكابتن تظهر في أي تليفون');
+            return await response.json();
+        }
+
+        function startLiveStream() {
+            fetchDriverFromDatabase(true);
+
+            try {
+                const eventSource = new EventSource(DRIVER_ENDPOINT);
+                eventSource.addEventListener('put', (event) => {
+                    try {
+                        const payload = JSON.parse(event.data);
+                        const nextData = payload ? payload.data : null;
+                        setCloudStatus('connected', 'متصل بقاعدة البيانات — تحديث لحظي لجميع الأجهزة');
+
+                        if (nextData && nextData.name && nextData.phone) {
+                            singleDriver = nextData;
+                            saveLocalDriver(nextData);
+                            fillFormWithDriver(nextData);
+                            renderSingleDriver(nextData);
+                        } else if (nextData === null) {
+                            singleDriver = null;
+                            renderSingleDriver(null);
+                        }
+                    } catch (_) {}
+                });
+                eventSource.addEventListener('patch', () => {
+                    fetchDriverFromDatabase(false);
+                });
+                eventSource.onerror = () => {
+                    // يعتمد على المزامنة الدورية في حال انقطاع البث المباشر مؤقتاً
+                };
+            } catch (_) {}
+
+            if (pollTimer) clearInterval(pollTimer);
+            pollTimer = setInterval(() => {
+                fetchDriverFromDatabase(false);
+            }, 6000);
         }
 
         window.toggleDriverStatus = async function(currentStatus) {
             if (!singleDriver) return;
             const nextStatus = !currentStatus;
-            singleDriver = { ...singleDriver, online: nextStatus, updatedAt: Date.now() };
-            saveLocalDriver(singleDriver);
-            renderSingleDriver(singleDriver);
+            const updated = { ...singleDriver, online: nextStatus, updatedAt: Date.now() };
+            singleDriver = updated;
+            saveLocalDriver(updated);
+            renderSingleDriver(updated);
 
-            if (currentUser && db) {
-                try {
-                    await updateDoc(getSingleDriverRef(), {
-                        online: nextStatus,
-                        updatedAt: Date.now()
-                    });
-                } catch (e) {
-                    console.error("خطأ في تحديث الحالة:", e);
-                }
+            try {
+                await pushDriverToDatabase(updated);
+                showToast('تم تحديث الحالة على قاعدة البيانات');
+            } catch (err) {
+                console.error('Status update error:', err);
+                showToast('تم التحديث محلياً — تحقق من قواعد قاعدة البيانات');
             }
-            showToast('تم تحديث حالة الكابتن');
         };
 
         function renderSingleDriver(driver) {
@@ -360,19 +421,16 @@
             saveLocalDriver(payload);
             renderSingleDriver(payload);
 
-            if (currentUser && db) {
-                try {
-                    await setDoc(getSingleDriverRef(), {
-                        ...payload,
-                        updatedBy: currentUser.uid
-                    }, { merge: true });
-                } catch (e) {
-                    console.error("خطأ في حفظ الكابتن:", e);
-                }
+            let savedCloud = false;
+            try {
+                await pushDriverToDatabase(payload);
+                savedCloud = true;
+            } catch (err) {
+                console.error('Save error:', err);
             }
 
             closeModal('registerModal');
-            showToast('تم حفظ بيانات الكابتن بنجاح');
+            showToast(savedCloud ? 'تم حفظ الكابتن ويظهر الآن في أي تليفون' : 'تم الحفظ محلياً فقط');
 
             btn.disabled = false;
             btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> <span>حفظ بيانات الكابتن</span>';
@@ -403,7 +461,10 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            initDatabase();
+            singleDriver = loadLocalDriver();
+            fillFormWithDriver(singleDriver);
+            renderSingleDriver(singleDriver);
+            startLiveStream();
         });
     </script>
 </body>
